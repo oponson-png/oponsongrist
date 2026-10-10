@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Vue personnalisée Grist</title>
+  <script src="https[span_3](start_span):[span_3](end_span)//docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    /* Modifie le style de ton tableau ici */
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 12px;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    th {
+      background-color: #1e293b;
+      color: #ffffff;
+      text-align: left;
+      padding: 12px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    /* Style pour les cellules vides */
+    .empty {
+      color: #94a3b8;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div id="table-container">Chargement des données…</div>
+
+  <script>
+    // Initialisation de l'API Grist avec accès en lecture
+    grist.ready({ requiredAccess: 'read table' });
+
+    // Réception des données à chaque modification
+    grist.onRecords(function(records) {
+      const container = document.getElementById('table-container');
+
+      if (!records || records.length === 0) {
+        container.innerHTML = '<p>Aucune donnée à afficher.</p>';
+        return;
+      }
+
+      // Extraction des noms de colonnes (en excluant 'id')
+      const columns = Object.keys(records[0]).filter(k => k !== 'id');
+
+      let html = '<table><thead><tr>';
+      columns.forEach(col => {
+        html += `<th>${escapeHtml(col)}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      records.forEach(record => {
+        html += '<tr>';
+        columns.forEach(col => {
+          const val = record[col];
+          if (val === null || val === undefined || val === '') {
+            html += '<td class="empty">-</td>';
+          } else {
+            html += `<td>${escapeHtml(String(val))}</td>`;
+          }
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    });
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+  </script>
+</body>
+</html>
